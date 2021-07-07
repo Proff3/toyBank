@@ -3,29 +3,27 @@ package ru.toyBank.models;
 import ru.toyBank.models.exceptions.NotEnoughMoney;
 
 public class BackSystem {
-    int bankAccount;
+    private int bankAccount;
+
+    public int getBankAccount() {
+        return bankAccount;
+    }
 
     public synchronized void credit(int sum) throws NotEnoughMoney {
-        try {
-            System.out.println("Operation credit is processing");
-            wait(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        if (bankAccount - sum < 0){
+        System.out.println("Operation credit is processing");
+        writeOff(sum);
+    }
+
+    private void writeOff(int sum) throws NotEnoughMoney {
+        if (bankAccount - sum < 0) {
             throw new NotEnoughMoney();
         } else {
-           bankAccount -= sum;
+            bankAccount -= sum;
         }
     }
 
     public synchronized void payment(int sum){
-        try {
-            System.out.println("Operation payment is processing");
-            wait(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        System.out.println("Operation payment is processing");
         bankAccount += sum;
     }
 }

@@ -16,23 +16,12 @@ public class Request {
         return clientName;
     }
 
-    public void setClientName(String name) {
-        this.clientName = name;
-    }
-
     public int getSum() {
         return sum;
-    }
-
-    public void setSum(int sum) {
-        this.sum = sum;
     }
 
     public RequestTypes getRequestType() {
         return requestType;
     }
 
-    public void setRequestType(RequestTypes requestType) {
-        this.requestType = requestType;
-    }
 }

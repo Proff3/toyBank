@@ -8,7 +8,7 @@ public class Client extends Thread{
     private final Request request;
     private final FrontBankSystem frontBankSystem;
 
-    public Client(String name, RequestTypes requestType, int sum, FrontBankSystem frontBankSystem){
+    Client(String name, RequestTypes requestType, int sum, FrontBankSystem frontBankSystem){
         super(name);
         request = new Request(name, sum, requestType);
         this.frontBankSystem = frontBankSystem;
@@ -16,7 +16,7 @@ public class Client extends Thread{
 
     @Override
     public void run() {
-        frontBankSystem.add(request);
+        frontBankSystem.addRequest(request);
     }
 
 }

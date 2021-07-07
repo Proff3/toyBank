@@ -4,28 +4,48 @@ import ru.toyBank.models.FrontBankSystem;
 import ru.toyBank.models.enums.RequestTypes;
 
 import java.util.ArrayList;
-import java.util.List;
+import java.util.Arrays;
 
-public class Bank {
+class Bank {
 
     private final FrontBankSystem frontBankSystem = new FrontBankSystem();
 
-    public void start() {
-        Client John = new Client("John", RequestTypes.PAYMENT, 100_000, frontBankSystem);
-        Client Michel = new Client("Michel", RequestTypes.CREDIT, 50_000, frontBankSystem);
-        Client Michel2 = new Client("Michel2", RequestTypes.PAYMENT, 50_000, frontBankSystem);
-        Client Michel3 = new Client("Michel3", RequestTypes.CREDIT, 50_000, frontBankSystem);
-        Client Michel4 = new Client("Michel4", RequestTypes.PAYMENT, 50_000, frontBankSystem);
-        ArrayList<Client> clientsPool = new ArrayList<>(List.of(John, Michel, Michel2, Michel3, Michel4));
-        clientsPool.forEach(Thread::start);
-        try {
-            Thread.sleep(100);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+    void start() {
+        ArrayList<Thread> clientsPool = createClientPool();
+        clientsPool.forEach(client -> {
+            try{
+                client.join();
+            } catch(InterruptedException err){
+                err.printStackTrace();
+            }
+            client.start();
+        });
+
+        int numberOfRequests = clientsPool.size();
+        ArrayList<Thread> handlersPool = createHandlersPool(numberOfRequests);
+        handlersPool.forEach(handler -> {
+            try{
+                handler.join();
+                handler.setDaemon(true);
+                handler.start();
+            } catch (InterruptedException err) {
+                err.printStackTrace();
+            }
+        });
+    }
+
+    private ArrayList<Thread> createClientPool(){
+        Thread John = new Client("John", RequestTypes.PAYMENT, 89_000, frontBankSystem);
+        Thread Michel = new Client("Michel", RequestTypes.CREDIT, 46_000, frontBankSystem);
+        Thread Michel2 = new Client("Alex", RequestTypes.PAYMENT, 24_000, frontBankSystem);
+        Thread Michel3 = new Client("Andrew", RequestTypes.CREDIT, 63_000, frontBankSystem);
+        Thread Michel4 = new Client("Eliza", RequestTypes.PAYMENT, 78_000, frontBankSystem);
+        return new ArrayList<>(Arrays.asList(John, Michel, Michel2, Michel3, Michel4));
+    }
+
+    private ArrayList<Thread> createHandlersPool(int numberOfRequests){
         Thread handler1 = new Thread(new Handler(frontBankSystem), "Handler1");
         Thread handler2 = new Thread(new Handler(frontBankSystem), "Handler2");
-        ArrayList<Thread> handlersPool = new ArrayList<>(List.of(handler1, handler2));
-        handlersPool.forEach(Thread::start);
+        return new ArrayList<>(Arrays.asList(handler1, handler2));
     }
 }

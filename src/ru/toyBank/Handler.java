@@ -5,26 +5,29 @@ import ru.toyBank.models.FrontBankSystem;
 import ru.toyBank.models.Request;
 import ru.toyBank.models.exceptions.NotEnoughMoney;
 
-public class Handler implements Runnable {
+public class Handler extends Thread {
 
-    FrontBankSystem frontBankSystem;
-    BackSystem backSystem = new BackSystem();
+    private FrontBankSystem frontBankSystem;
+    private BackSystem backSystem = new BackSystem();
 
-    public Handler(FrontBankSystem frontBankSystem){
+    Handler(FrontBankSystem frontBankSystem){
         this.frontBankSystem = frontBankSystem;
     }
 
     @Override
     public void run() {
-        while(!frontBankSystem.isEmpty()){
-            Request handlingRequest = frontBankSystem.remove();
+        do{
+            frontBankSystem.sleepIfEmpty();     //ждем первую заявку
+            Request handlingRequest = frontBankSystem.poolRequest();
             try {
                 handlingAction(handlingRequest);
-                System.out.println("Operation " + handlingRequest.getRequestType() + " клиента " + handlingRequest.getClientName() + " произведжена успешно");
+                System.out.println("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is successfully");
             } catch (NotEnoughMoney notEnoughMoney) {
-                notEnoughMoney.printStackTrace();
+                System.out.println("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is FAILED");
+            } finally {
+                System.out.println("Bank account: " + backSystem.getBankAccount());
             }
-        }
+        } while (!this.isInterrupted());  // поток является демоном, поэтому можно можно не прерывать
     }
 
     private void handlingAction(Request request) throws NotEnoughMoney {
