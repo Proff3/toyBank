@@ -26,7 +26,6 @@ class Bank {
         handlersPool.forEach(handler -> {
             try{
                 handler.join();
-                //handler.setDaemon(true);
                 handler.start();
             } catch (InterruptedException err) {
                 err.printStackTrace();
