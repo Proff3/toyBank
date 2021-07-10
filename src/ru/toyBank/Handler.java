@@ -16,18 +16,25 @@ public class Handler extends Thread {
 
     @Override
     public void run() {
-        do{
-            frontBankSystem.sleepIfEmpty();     //ждем первую заявку
-            Request handlingRequest = frontBankSystem.poolRequest();
-            try {
-                handlingAction(handlingRequest);
-                System.out.println("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is successfully");
-            } catch (NotEnoughMoney notEnoughMoney) {
-                System.out.println("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is FAILED");
-            } finally {
-                System.out.println("Bank account: " + backSystem.getBankAccount());
-            }
-        } while (!this.isInterrupted());  // поток является демоном, поэтому можно можно не прерывать
+        try{
+            do{
+                frontBankSystem.sleepIfEmpty();     //ждем первую заявку
+                Request handlingRequest = frontBankSystem.poolRequest();
+                if (handlingRequest != null){
+                    try {
+                        handlingAction(handlingRequest);
+                        System.out.println("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is successfully");
+                    } catch (NotEnoughMoney notEnoughMoney) {
+                        System.out.println("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is FAILED");
+                    } finally {
+                        System.out.println("Bank account: " + backSystem.getBankAccount());
+                    }
+                }
+            } while (!this.isInterrupted());  // поток является демоном, поэтому можно можно не прерывать
+        } catch (Exception err){
+            err.printStackTrace();
+        }
+
     }
 
     private void handlingAction(Request request) throws NotEnoughMoney {

@@ -5,16 +5,12 @@ import ru.toyBank.models.exceptions.NotEnoughMoney;
 public class BackSystem {
     private int bankAccount;
 
-    public int getBankAccount() {
+    public synchronized int getBankAccount() {
         return bankAccount;
     }
 
     public synchronized void credit(int sum) throws NotEnoughMoney {
         System.out.println("Operation credit is processing");
-        writeOff(sum);
-    }
-
-    private void writeOff(int sum) throws NotEnoughMoney {
         if (bankAccount - sum < 0) {
             throw new NotEnoughMoney();
         } else {
