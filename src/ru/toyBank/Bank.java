@@ -36,10 +36,10 @@ class Bank {
     private ArrayList<Thread> createClientPool(){
         Thread John = new Client("John", RequestTypes.PAYMENT, 89_000, frontBankSystem);
         Thread Michel = new Client("Michel", RequestTypes.CREDIT, 46_000, frontBankSystem);
-        Thread Michel2 = new Client("Alex", RequestTypes.PAYMENT, 24_000, frontBankSystem);
-        Thread Michel3 = new Client("Andrew", RequestTypes.CREDIT, 63_000, frontBankSystem);
-        Thread Michel4 = new Client("Eliza", RequestTypes.PAYMENT, 78_000, frontBankSystem);
-        return new ArrayList<>(Arrays.asList(John, Michel, Michel2, Michel3, Michel4));
+        Thread Alex = new Client("Alex", RequestTypes.PAYMENT, 24_000, frontBankSystem);
+        Thread Andrew = new Client("Andrew", RequestTypes.CREDIT, 63_000, frontBankSystem);
+        Thread Eliza = new Client("Eliza", RequestTypes.PAYMENT, 78_000, frontBankSystem);
+        return new ArrayList<>(Arrays.asList(John, Michel, Alex, Andrew, Eliza));
     }
 
     private ArrayList<Thread> createHandlersPool(int numberOfRequests){
