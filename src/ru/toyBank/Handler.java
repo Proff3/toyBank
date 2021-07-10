@@ -19,15 +19,13 @@ public class Handler extends Thread {
         try{
             while (!frontBankSystem.isEmpty()){
                 Request handlingRequest = frontBankSystem.poolRequest();
-                if (handlingRequest != null){
-                    try {
-                        handlingAction(handlingRequest);
-                        System.out.println("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is successfully");
-                    } catch (NotEnoughMoney notEnoughMoney) {
-                        System.out.println("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is FAILED");
-                    } finally {
-                        System.out.println("Bank account: " + backSystem.getBankAccount());
-                    }
+                try {
+                    handlingAction(handlingRequest);
+                    System.out.println("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is successfully");
+                } catch (NotEnoughMoney notEnoughMoney) {
+                    System.out.println("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is FAILED");
+                } finally {
+                    System.out.println("Bank account: " + backSystem.getBankAccount());
                 }
             }
         } catch (Exception err){
