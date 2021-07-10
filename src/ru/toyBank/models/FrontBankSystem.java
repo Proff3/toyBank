@@ -24,16 +24,6 @@ public class FrontBankSystem {
         return removedRequest;
     }
 
-    public synchronized void sleepIfEmpty(){
-        if (requestsQueue.isEmpty()) {
-            try {
-                wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     public Boolean isEmpty(){
         return requestsQueue.isEmpty();
     }

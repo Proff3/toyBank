@@ -26,17 +26,12 @@ class Bank {
         handlersPool.forEach(handler -> {
             try{
                 handler.join();
-                handler.setDaemon(true);
+                //handler.setDaemon(true);
                 handler.start();
             } catch (InterruptedException err) {
                 err.printStackTrace();
             }
         });
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
     private ArrayList<Thread> createClientPool(){

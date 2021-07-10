@@ -17,8 +17,7 @@ public class Handler extends Thread {
     @Override
     public void run() {
         try{
-            do{
-                frontBankSystem.sleepIfEmpty();     //ждем первую заявку
+            while (!frontBankSystem.isEmpty()){
                 Request handlingRequest = frontBankSystem.poolRequest();
                 if (handlingRequest != null){
                     try {
@@ -30,7 +29,7 @@ public class Handler extends Thread {
                         System.out.println("Bank account: " + backSystem.getBankAccount());
                     }
                 }
-            } while (!this.isInterrupted());  // поток является демоном, поэтому можно можно не прерывать
+            }
         } catch (Exception err){
             err.printStackTrace();
         }
