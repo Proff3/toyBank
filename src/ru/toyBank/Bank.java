@@ -12,25 +12,10 @@ class Bank {
 
     void start() {
         ArrayList<Thread> clientsPool = createClientPool();
-        clientsPool.forEach(client -> {
-            try{
-                client.join();
-            } catch(InterruptedException err){
-                err.printStackTrace();
-            }
-            client.start();
-        });
+        clientsPool.forEach(Thread::start);
 
-        int numberOfRequests = clientsPool.size();
-        ArrayList<Thread> handlersPool = createHandlersPool(numberOfRequests);
-        handlersPool.forEach(handler -> {
-            try{
-                handler.join();
-                handler.start();
-            } catch (InterruptedException err) {
-                err.printStackTrace();
-            }
-        });
+        ArrayList<Thread> handlersPool = createHandlersPool();
+        handlersPool.forEach(Thread::start);
     }
 
     private ArrayList<Thread> createClientPool(){
@@ -42,9 +27,9 @@ class Bank {
         return new ArrayList<>(Arrays.asList(John, Michel, Alex, Andrew, Eliza));
     }
 
-    private ArrayList<Thread> createHandlersPool(int numberOfRequests){
-        Thread handler1 = new Thread(new Handler(frontBankSystem), "Handler1");
-        Thread handler2 = new Thread(new Handler(frontBankSystem), "Handler2");
+    private ArrayList<Thread> createHandlersPool(){
+        Thread handler1 = new Thread(new Handler(frontBankSystem, "Handler1"));
+        Thread handler2 = new Thread(new Handler(frontBankSystem, "Handler2"));
         return new ArrayList<>(Arrays.asList(handler1, handler2));
     }
 }

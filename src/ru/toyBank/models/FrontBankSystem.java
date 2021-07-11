@@ -14,8 +14,6 @@ public class FrontBankSystem {
             }
         }
         requestsQueue.add(request);
-        notifyAll();
-        System.out.println("Added: " + request.getClientName());
     }
 
     public synchronized Request poolRequest(){

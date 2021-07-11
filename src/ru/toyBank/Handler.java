@@ -7,10 +7,12 @@ import ru.toyBank.models.exceptions.NotEnoughMoney;
 
 public class Handler extends Thread {
 
-    private FrontBankSystem frontBankSystem;
-    private BackSystem backSystem = new BackSystem();
+    private final FrontBankSystem frontBankSystem;
+    private final BackSystem backSystem = new BackSystem();
+    int bankAccount;
 
-    Handler(FrontBankSystem frontBankSystem){
+    Handler(FrontBankSystem frontBankSystem, String name){
+        super(name);
         this.frontBankSystem = frontBankSystem;
     }
 
@@ -19,13 +21,14 @@ public class Handler extends Thread {
         try{
             while (!frontBankSystem.isEmpty()){
                 Request handlingRequest = frontBankSystem.poolRequest();
-                try {
-                    handlingAction(handlingRequest);
-                    System.out.println("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is successfully");
-                } catch (NotEnoughMoney notEnoughMoney) {
-                    System.out.println("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is FAILED");
-                } finally {
-                    System.out.println("Bank account: " + backSystem.getBankAccount());
+                if (handlingRequest != null){
+                    try {
+                        handlingAction(handlingRequest);
+                        System.out.println("Bank account: " + bankAccount + " - operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is successfully (Thread " + this.getName() + ")");
+                    } catch (NotEnoughMoney notEnoughMoney) {
+                        System.out.print("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is FAILED (Thread " + this.getName() + ")\n");
+
+                    }
                 }
             }
         } catch (Exception err){
@@ -38,10 +41,10 @@ public class Handler extends Thread {
         int sum = request.getSum();
         switch(request.getRequestType()){
             case CREDIT:
-                backSystem.credit(sum);
+                bankAccount = backSystem.creditAndGetAccount(sum);
                 break;
             case PAYMENT:
-                backSystem.payment(sum);
+                bankAccount = backSystem.paymentAndGetAccount(sum);
                 break;
         }
     }
