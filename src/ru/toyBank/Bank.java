@@ -1,50 +1,59 @@
 package ru.toyBank;
 
+import ru.toyBank.models.BackSystem;
 import ru.toyBank.models.FrontBankSystem;
 import ru.toyBank.models.enums.RequestTypes;
 
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.*;
+import java.util.concurrent.*;
 
 class Bank {
 
     private final FrontBankSystem frontBankSystem = new FrontBankSystem();
+    private final BackSystem backSystem = new BackSystem();
 
     void start() {
-        ArrayList<Thread> clientsPool = createClientPool();
-        clientsPool.forEach(client -> {
-            try{
-                client.join();
-            } catch(InterruptedException err){
-                err.printStackTrace();
-            }
-            client.start();
-        });
+        WarmingUp warmingUp = new WarmingUp();
+        ExecutorService warmingUpService = Executors.newSingleThreadExecutor();
+        Future<Integer> futureOfWarmingUp = warmingUpService.submit(warmingUp);
+        try {
+            int result = futureOfWarmingUp.get();
+            warmingUpService.shutdown();
+            int bankAccount = backSystem.paymentAndGetAccount(result, "warmingUp");
+            System.out.println("Bank account after warming-up: " + bankAccount);
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
 
-        int numberOfRequests = clientsPool.size();
-        ArrayList<Thread> handlersPool = createHandlersPool(numberOfRequests);
-        handlersPool.forEach(handler -> {
-            try{
-                handler.join();
-                handler.start();
-            } catch (InterruptedException err) {
-                err.printStackTrace();
-            }
-        });
+        ExecutorService clientsExecutorPool = Executors.newFixedThreadPool(2);
+        Set<Callable<Client>> clients = createClients();
+        for(Callable<Client> client: clients){
+            clientsExecutorPool.submit(client);
+        }
+
+        ExecutorService handlersExecutorPool = Executors.newFixedThreadPool(2);
+        Set<Callable<Handler>> handlers = createHandlers();
+        try {
+            handlersExecutorPool.invokeAll(handlers);
+            clientsExecutorPool.shutdown();
+            handlersExecutorPool.shutdown();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
-    private ArrayList<Thread> createClientPool(){
-        Thread John = new Client("John", RequestTypes.PAYMENT, 89_000, frontBankSystem);
-        Thread Michel = new Client("Michel", RequestTypes.CREDIT, 46_000, frontBankSystem);
-        Thread Michel2 = new Client("Alex", RequestTypes.PAYMENT, 24_000, frontBankSystem);
-        Thread Michel3 = new Client("Andrew", RequestTypes.CREDIT, 63_000, frontBankSystem);
-        Thread Michel4 = new Client("Eliza", RequestTypes.PAYMENT, 78_000, frontBankSystem);
-        return new ArrayList<>(Arrays.asList(John, Michel, Michel2, Michel3, Michel4));
+    private Set<Callable<Client>> createClients(){
+        Callable<Client> John = new Client("John", RequestTypes.PAYMENT, 89_000, frontBankSystem);
+        Callable<Client> Michel = new Client("Michel", RequestTypes.CREDIT, 46_000, frontBankSystem);
+        Callable<Client> Alex = new Client("Alex", RequestTypes.PAYMENT, 24_000, frontBankSystem);
+        Callable<Client> Andrew = new Client("Andrew", RequestTypes.CREDIT, 63_000, frontBankSystem);
+        Callable<Client> Eliza = new Client("Eliza", RequestTypes.PAYMENT, 78_000, frontBankSystem);
+        return new HashSet<>(Arrays.asList(John, Michel, Alex, Andrew, Eliza));
     }
 
-    private ArrayList<Thread> createHandlersPool(int numberOfRequests){
-        Thread handler1 = new Thread(new Handler(frontBankSystem), "Handler1");
-        Thread handler2 = new Thread(new Handler(frontBankSystem), "Handler2");
-        return new ArrayList<>(Arrays.asList(handler1, handler2));
+    private Set<Callable<Handler>> createHandlers(){
+        Callable<Handler> handler1 = new Handler(frontBankSystem, backSystem, "Handler1");
+        Callable<Handler> handler2 = new Handler(frontBankSystem, backSystem, "Handler2");
+        return new HashSet<>(Arrays.asList(handler1, handler2));
     }
 }

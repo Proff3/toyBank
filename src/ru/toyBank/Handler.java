@@ -5,44 +5,52 @@ import ru.toyBank.models.FrontBankSystem;
 import ru.toyBank.models.Request;
 import ru.toyBank.models.exceptions.NotEnoughMoney;
 
-public class Handler extends Thread {
+import java.util.concurrent.Callable;
 
-    private FrontBankSystem frontBankSystem;
-    private BackSystem backSystem = new BackSystem();
+public class Handler implements Callable<Handler> {
 
-    Handler(FrontBankSystem frontBankSystem){
+    private final FrontBankSystem frontBankSystem;
+    private final BackSystem backSystem;
+    private final String name;
+    int bankAccount;
+
+    Handler(FrontBankSystem frontBankSystem, BackSystem backSystem, String name){
+        this.name = name;
+        this.backSystem = backSystem;
         this.frontBankSystem = frontBankSystem;
     }
 
+    private void handlingAction(Request request) throws NotEnoughMoney {
+        int sum = request.getSum();
+        String clientName = request.getClientName();
+        switch(request.getRequestType()){
+            case CREDIT:
+                bankAccount = backSystem.creditAndGetAccount(sum, clientName);
+                break;
+            case PAYMENT:
+                bankAccount = backSystem.paymentAndGetAccount(sum, clientName);
+                break;
+        }
+    }
+
     @Override
-    public void run() {
+    public Handler call() {
         try{
             while (!frontBankSystem.isEmpty()){
-                Request handlingRequest = frontBankSystem.poolRequest();
-                try {
-                    handlingAction(handlingRequest);
-                    System.out.println("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is successfully");
-                } catch (NotEnoughMoney notEnoughMoney) {
-                    System.out.println("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is FAILED");
-                } finally {
-                    System.out.println("Bank account: " + backSystem.getBankAccount());
+                Request handlingRequest = frontBankSystem.pollRequest();
+                if (handlingRequest != null){
+                    try {
+                        handlingAction(handlingRequest);
+                        System.out.println("Bank account: " + bankAccount + " - operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is successfully (Thread " + name + ")");
+                    } catch (NotEnoughMoney notEnoughMoney) {
+                        System.out.print("Operation " + handlingRequest.getRequestType() + " of client " + handlingRequest.getClientName() + " is FAILED (Thread " + name + ")\n");
+
+                    }
                 }
             }
         } catch (Exception err){
             err.printStackTrace();
         }
-
-    }
-
-    private void handlingAction(Request request) throws NotEnoughMoney {
-        int sum = request.getSum();
-        switch(request.getRequestType()){
-            case CREDIT:
-                backSystem.credit(sum);
-                break;
-            case PAYMENT:
-                backSystem.payment(sum);
-                break;
-        }
+        return null;
     }
 }
